@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2027 FAKERS 타자 기록</title>
+<meta name="theme-color" content="#1B4332">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FAKERS 타자">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --forest:#1B4332; --forest-dark:#0F2A1D; --forest-line:#2E5940; --amber:#C98A3D; --amber-light:#F2D8AE; --amber-deep:#8A5A20; --navy:#1F3A5F; --paper:#FFFFFF; --paper-tint:#FAFAF7; --ink:#182019; --ink-soft:#5B6058; --line:#E6E3D8; --warn:#B4483A; --qual-bg:#E7F1EA; --unqual-bg:#F1F0EC; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background: var(--paper-tint); color: var(--ink); font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  body { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left,0px); padding-right: env(safe-area-inset-right,0px); -webkit-text-size-adjust: 100%; }
+  button { font: inherit; cursor: pointer; }
+  input { font: inherit; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .hero { background: linear-gradient(180deg, var(--forest), var(--forest-dark)); padding: 24px 20px 20px; color:#fff; }
+  .hero-title { font-family:'Oswald', sans-serif; font-size: 30px; letter-spacing: .02em; font-weight:700; }
+  .hero-sub { color: var(--amber-light); font-size: 14px; margin-top: 2px; }
+  .save-state { font-size: 12px; color: rgba(255,255,255,.6); min-height: 16px; }
+  .summary { margin-top: 18px; display:grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+  @media (min-width: 640px) { .summary { grid-template-columns: repeat(4,1fr); } }
+  .sum-card { background: rgba(255,255,255,.06); border-radius: 8px; padding: 8px 12px; }
+  .sum-label { font-size: 12px; color: var(--amber-light); }
+  .sum-val { font-family:'JetBrains Mono', monospace; font-size: 24px; font-weight:600; color:#fff; }
+  .hero-foot { margin-top: 8px; font-size: 12px; color: rgba(255,255,255,.5); line-height: 1.5; }
+  .leaders { padding: 16px 20px 4px; display:flex; gap: 10px; flex-wrap: wrap; }
+  .leader { flex: 1 1 140px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .leader-title { font-size: 12px; font-weight:600; color: var(--amber-deep); letter-spacing: .06em; text-transform: uppercase; }
+  .leader-name { font-family:'Oswald', sans-serif; font-size: 18px; font-weight:600; margin-top: 4px; }
+  .leader-val { font-family:'JetBrains Mono', monospace; font-size: 14px; color: var(--ink-soft); }
+  .toolbar { padding: 8px 20px 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 8px; }
+  .toolbar-help { font-size: 12px; color: var(--ink-soft); line-height: 1.5; max-width: 560px; }
+  .btn { display:inline-flex; align-items:center; gap:4px; border-radius:6px; padding: 7px 12px; font-size: 14px; font-weight:500; border: 1px solid var(--line); background: #fff; color: var(--ink-soft); }
+  .btn-primary { background: var(--forest); color:#fff; border-color: var(--forest); }
+  .btn-danger { background: var(--warn); color:#fff; border-color: var(--warn); }
+  .btn-sm { padding: 4px 9px; font-size: 12px; }
+  .section { padding: 0 20px; margin-bottom: 22px; }
+  .section-head { display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .badge { font-size: 12px; font-weight:600; padding: 2px 8px; border-radius: 4px; }
+  .note { font-size: 12px; color: var(--ink-soft); }
+  .scroll-hint { font-size: 12px; color: var(--amber-deep); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; -webkit-overflow-scrolling: touch; background:#fff; }
+  table { border-collapse: collapse; min-width: 1500px; width: 100%; }
+  thead tr { background: var(--forest); }
+  th { color: rgba(255,255,255,.8); font-size: 12px; font-weight:600; padding: 8px 8px; white-space: nowrap; text-align: right; cursor: pointer; user-select:none; }
+  th.left, td.left { text-align:left; }
+  th.active { color: var(--amber); }
+  tbody tr.player { cursor: pointer; border-top: 1px solid var(--line); }
+  tbody tr.player:nth-child(even) { background: var(--paper-tint); }
+  tbody tr.player.editing { background: var(--amber-light); }
+  td { padding: 6px 8px; font-size: 14px; text-align: right; font-family:'JetBrains Mono', monospace; white-space: nowrap; }
+  td.name { text-align:left; font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-weight:500; }
+  td.num-col { text-align:left; color: var(--ink-soft); font-size: 12px; }
+  td.act { font-size: 12px; color: var(--navy); font-family: inherit; }
+  td.ops { font-weight: 600; color:#fff; }
+  tr.subtotal td { font-weight:700; border-top: 2px solid var(--amber-deep); }
+  tr.editor td { background: #FBF6EC; border-top: 1px solid var(--line); white-space: normal; text-align:left; padding: 14px 16px; }
+  .ed-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 8px; margin-bottom: 10px; }
+  .ed-left { display:flex; align-items:center; gap: 6px; flex-wrap: wrap; }
+  .ed-input { border:1px solid var(--line); border-radius: 4px; padding: 5px 8px; font-size: 14px; background:#fff; }
+  .fields { display:grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  @media (min-width: 640px) { .fields { grid-template-columns: repeat(5,1fr); } }
+  @media (min-width: 1000px) { .fields { grid-template-columns: repeat(9,1fr); } }
+  .field { display:flex; flex-direction: column; gap: 3px; }
+  .field span { font-size: 12px; color: var(--ink-soft); }
+  .field input { border:1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-family:'JetBrains Mono', monospace; background: var(--paper-tint); color: var(--ink); width: 100%; min-width: 0; }
+  .ed-foot { margin-top: 10px; font-size: 12px; color: var(--ink-soft); }
+  .good { color: #2F7D4F; }
+  .disclaimer { font-size: 12px; color: var(--ink-soft); line-height: 1.6; padding: 0 20px; margin: 6px 0 10px; }
+  .notice { margin: 0 20px 20px; font-size: 12px; line-height: 1.6; color: var(--amber-deep); background: var(--amber-light); border-radius: 6px; padding: 8px 12px; }
+  .empty { padding: 14px; text-align:center; color: var(--ink-soft); font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const T = {
+  forest: "#1B4332", forestLine: "#2E5940", amber: "#C98A3D", amberLight: "#F2D8AE", amberDeep: "#8A5A20",
+  ink: "#182019", inkSoft: "#5B6058", line: "#E6E3D8", good: "#2F7D4F", warn: "#B4483A",
+  qualBg: "#E7F1EA", unqualBg: "#F1F0EC", paperTint: "#FAFAF7"
+};
+const STORAGE_KEY = "fakers-2027-batting";
+const PA_THRESHOLD = 20;
+const QUAL_LABEL = `규정타석 이상 · PA ${PA_THRESHOLD}+`;
+const UNQUAL_LABEL = `규정타석 미만 · PA <${PA_THRESHOLD}`;
+
+const FIELDS = ["g","pa","ab","r","h","b1","b2","b3","hr","rbi","bb","hbp","k","gdp","sh","sf","sb","cs"];
+const FIELD_LABEL = {
+  g:"경기", pa:"타석", ab:"타수", r:"득점", h:"안타", b1:"1루타", b2:"2루타", b3:"3루타", hr:"홈런", rbi:"타점",
+  bb:"볼넷", hbp:"사구", k:"삼진", gdp:"병살", sh:"희생타", sf:"희생플라이", sb:"도루", cs:"도루자"
+};
+
+const COLS = [
+  {key:"g",label:"G"},{key:"pa",label:"PA"},{key:"ab",label:"AB"},{key:"r",label:"R"},{key:"h",label:"H"},
+  {key:"b1",label:"1B"},{key:"b2",label:"2B"},{key:"b3",label:"3B"},{key:"hr",label:"HR"},{key:"rbi",label:"RBI"},
+  {key:"bb",label:"BB"},{key:"hbp",label:"HBP"},{key:"k",label:"K"},{key:"gdp",label:"GDP"},
+  {key:"sh",label:"SH"},{key:"sf",label:"SF"},{key:"sb",label:"SB"},{key:"cs",label:"CS"},
+  {key:"AVG",label:"AVG",rate:true},{key:"OBP",label:"OBP",rate:true},{key:"SLG",label:"SLG",rate:true},
+  {key:"OPS",label:"OPS",rate:true,ops:true},{key:"wOBA",label:"wOBA",rate:true}
+];
+
+const INITIAL_PLAYERS = [
+  { name: "박준호", num: 2, g: 5, pa: 17, ab: 14, r: 9, h: 7, b1: 3, b2: 3, b3: 1, hr: 0, rbi: 6, bb: 3, hbp: 0, k: 3, gdp: 0, sh: 0, sf: 0, sb: 5, cs: 0 },
+  { name: "박충규", num: 5, g: 16, pa: 38, ab: 31, r: 7, h: 2, b1: 2, b2: 0, b3: 0, hr: 0, rbi: 4, bb: 7, hbp: 0, k: 18, gdp: 0, sh: 0, sf: 0, sb: 6, cs: 0 },
+  { name: "차인태", num: 9, g: 13, pa: 40, ab: 26, r: 8, h: 13, b1: 11, b2: 2, b3: 0, hr: 0, rbi: 12, bb: 12, hbp: 1, k: 6, gdp: 0, sh: 0, sf: 1, sb: 13, cs: 0 },
+  { name: "박민호", num: 10, g: 2, pa: 5, ab: 4, r: 1, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 1, hbp: 0, k: 3, gdp: 0, sh: 0, sf: 0, sb: 1, cs: 0 },
+  { name: "김병섭", num: 11, g: 1, pa: 3, ab: 2, r: 3, h: 2, b1: 1, b2: 0, b3: 1, hr: 0, rbi: 2, bb: 1, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "박세윤", num: 13, g: 12, pa: 34, ab: 29, r: 8, h: 8, b1: 4, b2: 4, b3: 0, hr: 0, rbi: 8, bb: 5, hbp: 0, k: 6, gdp: 0, sh: 0, sf: 0, sb: 7, cs: 0 },
+  { name: "윤지열", num: 14, g: 1, pa: 3, ab: 3, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 1, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "한동길", num: 15, g: 11, pa: 32, ab: 24, r: 11, h: 8, b1: 4, b2: 3, b3: 1, hr: 0, rbi: 5, bb: 7, hbp: 1, k: 4, gdp: 0, sh: 0, sf: 0, sb: 17, cs: 0 },
+  { name: "박영욱", num: 17, g: 0, pa: 0, ab: 0, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "이상헌", num: 18, g: 0, pa: 0, ab: 0, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "장경환", num: 20, g: 10, pa: 29, ab: 18, r: 9, h: 6, b1: 4, b2: 1, b3: 0, hr: 1, rbi: 9, bb: 8, hbp: 2, k: 3, gdp: 0, sh: 0, sf: 0, sb: 6, cs: 0 },
+  { name: "이원재", num: 21, g: 11, pa: 29, ab: 27, r: 5, h: 9, b1: 5, b2: 4, b3: 0, hr: 0, rbi: 14, bb: 1, hbp: 0, k: 8, gdp: 0, sh: 0, sf: 1, sb: 9, cs: 0 },
+  { name: "고영일", num: 22, g: 12, pa: 35, ab: 27, r: 12, h: 16, b1: 13, b2: 3, b3: 0, hr: 0, rbi: 9, bb: 7, hbp: 1, k: 4, gdp: 0, sh: 0, sf: 0, sb: 12, cs: 0 },
+  { name: "조민익", num: 23, g: 7, pa: 23, ab: 18, r: 6, h: 6, b1: 5, b2: 1, b3: 0, hr: 0, rbi: 2, bb: 3, hbp: 2, k: 6, gdp: 0, sh: 0, sf: 0, sb: 8, cs: 0 },
+  { name: "박상우", num: 27, g: 2, pa: 5, ab: 5, r: 2, h: 1, b1: 1, b2: 0, b3: 0, hr: 0, rbi: 1, bb: 0, hbp: 0, k: 2, gdp: 0, sh: 0, sf: 0, sb: 2, cs: 0 },
+  { name: "김송섭", num: 29, g: 12, pa: 33, ab: 19, r: 12, h: 6, b1: 5, b2: 1, b3: 0, hr: 0, rbi: 2, bb: 9, hbp: 5, k: 5, gdp: 0, sh: 0, sf: 0, sb: 19, cs: 0 },
+  { name: "이정현", num: 34, g: 14, pa: 39, ab: 28, r: 12, h: 11, b1: 10, b2: 1, b3: 0, hr: 0, rbi: 10, bb: 11, hbp: 0, k: 9, gdp: 0, sh: 0, sf: 0, sb: 8, cs: 0 },
+  { name: "유성일", num: 35, g: 4, pa: 7, ab: 4, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 2, hbp: 1, k: 2, gdp: 0, sh: 0, sf: 0, sb: 1, cs: 0 },
+  { name: "박진현", num: 42, g: 9, pa: 18, ab: 15, r: 2, h: 4, b1: 3, b2: 1, b3: 0, hr: 0, rbi: 5, bb: 3, hbp: 0, k: 7, gdp: 0, sh: 0, sf: 0, sb: 9, cs: 0 },
+  { name: "김구현", num: 45, g: 0, pa: 0, ab: 0, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "김성주", num: 47, g: 1, pa: 1, ab: 1, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 1, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "오영교", num: 50, g: 0, pa: 0, ab: 0, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "김재명", num: 51, g: 6, pa: 12, ab: 9, r: 5, h: 2, b1: 2, b2: 0, b3: 0, hr: 0, rbi: 4, bb: 3, hbp: 0, k: 3, gdp: 0, sh: 0, sf: 0, sb: 2, cs: 1 },
+  { name: "이상범", num: 53, g: 1, pa: 3, ab: 1, r: 3, h: 1, b1: 1, b2: 0, b3: 0, hr: 0, rbi: 1, bb: 2, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 1, cs: 0 },
+  { name: "박신영", num: 56, g: 2, pa: 4, ab: 3, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 1, hbp: 0, k: 1, gdp: 0, sh: 0, sf: 0, sb: 1, cs: 1 },
+  { name: "박지호", num: 83, g: 3, pa: 8, ab: 7, r: 1, h: 2, b1: 2, b2: 0, b3: 0, hr: 0, rbi: 1, bb: 1, hbp: 0, k: 3, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "이재민", num: 99, g: 0, pa: 0, ab: 0, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "서성용", num: 87, g: 11, pa: 25, ab: 19, r: 4, h: 6, b1: 5, b2: 1, b3: 0, hr: 0, rbi: 4, bb: 6, hbp: 0, k: 9, gdp: 0, sh: 0, sf: 0, sb: 7, cs: 0 },
+  { name: "이병석", num: 58, g: 1, pa: 0, ab: 0, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 0, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+  { name: "유재안", num: 36, g: 2, pa: 4, ab: 3, r: 2, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 1, hbp: 0, k: 1, gdp: 0, sh: 0, sf: 0, sb: 2, cs: 0 },
+  { name: "허진명", num: 6, g: 1, pa: 1, ab: 1, r: 0, h: 0, b1: 0, b2: 0, b3: 0, hr: 0, rbi: 0, bb: 0, hbp: 0, k: 1, gdp: 0, sh: 0, sf: 0, sb: 0, cs: 0 },
+];
+
+function withId(list) { return list.map((p, i) => ({ ...p, id: `p${i}_${p.num}` })); }
+
+// ===== 계산 로직 (원본 JSX와 동일) =====
+function calc(p) {
+  const TB = p.b1 * 1 + p.b2 * 2 + p.b3 * 3 + p.hr * 4;
+  const AVG = p.ab ? p.h / p.ab : 0;
+  const obpDen = p.ab + p.bb + p.hbp + p.sf;
+  const OBP = obpDen ? (p.h + p.bb + p.hbp) / obpDen : 0;
+  const SLG = p.ab ? TB / p.ab : 0;
+  const OPS = OBP + SLG;
+  const wobaDen = p.ab + p.bb + p.sf + p.hbp;
+  const wOBA = wobaDen
+    ? (0.69 * p.bb + 0.72 * p.hbp + 0.89 * p.b1 + 1.27 * p.b2 + 1.62 * p.b3 + 2.1 * p.hr) / wobaDen
+    : 0;
+  return { AVG, OBP, SLG, OPS, wOBA };
+}
+function teamOf(list) {
+  const t = {};
+  FIELDS.forEach((f) => (t[f] = list.reduce((s, p) => s + (Number(p[f]) || 0), 0)));
+  return { ...t, ...calc(t) };
+}
+function fmt3(x) { return isFinite(x) ? x.toFixed(3) : "—"; }
+
+function opsColor(ops) {
+  const stops = [
+    { v: 0.35, c: [196, 90, 76] }, { v: 0.7, c: [230, 178, 92] },
+    { v: 1.0, c: [124, 178, 96] }, { v: 1.35, c: [47, 125, 79] },
+  ];
+  const v = Math.max(stops[0].v, Math.min(stops[stops.length - 1].v, ops));
+  let lo = stops[0], hi = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (v >= stops[i].v && v <= stops[i + 1].v) { lo = stops[i]; hi = stops[i + 1]; break; }
+  }
+  const t = hi.v === lo.v ? 0 : (v - lo.v) / (hi.v - lo.v);
+  const c = lo.c.map((a, i) => Math.round(a + (hi.c[i] - a) * t));
+  return `rgba(${c[0]},${c[1]},${c[2]},0.9)`;
+}
+
+function sortRows(list, key, dir) {
+  const arr = [...list];
+  arr.sort((a, b) => {
+    const av = a[key], bv = b[key];
+    if (av === bv) return a.name.localeCompare(b.name);
+    return dir === "desc" ? bv - av : av - bv;
+  });
+  return arr;
+}
+
+// ===== 상태 & 저장 (이 기기 브라우저의 localStorage) =====
+let state = {
+  players: [],
+  editingId: null,
+  saveState: "idle",
+  sort: { A: { key: "OPS", dir: "desc" }, B: { key: "OPS", dir: "desc" } },
+  raw: {}
+};
+
+function loadPlayers() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch (e) {}
+  return withId(INITIAL_PLAYERS);
+}
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.players));
+    state.saveState = "saved";
+  } catch (e) {
+    state.saveState = "idle";
+  }
+}
+
+// ===== 이벤트 로직 =====
+function updatePlayer(id, field, value) {
+  state.players = state.players.map((p) => (p.id === id ? { ...p, [field]: value } : p));
+  persist();
+}
+function toggleEdit(id) {
+  state.editingId = state.editingId === id ? null : id;
+  state.raw = {};
+  render();
+}
+function addPlayer() {
+  const id = `new_${Date.now()}`;
+  const blank = { id, name: "새 선수", num: 0 };
+  FIELDS.forEach((f) => (blank[f] = 0));
+  state.players = [...state.players, blank];
+  state.editingId = id;
+  state.raw = {};
+  persist();
+  render();
+}
+function removePlayer(id) {
+  state.players = state.players.filter((p) => p.id !== id);
+  state.editingId = null;
+  state.raw = {};
+  persist();
+  render();
+}
+function resetAll() {
+  if (!confirm("모든 기록을 초기 업로드 데이터로 되돌릴까요? 지금까지의 수정 내용은 사라집니다.")) return;
+  state.players = withId(INITIAL_PLAYERS);
+  state.editingId = null;
+  state.raw = {};
+  persist();
+  render();
+}
+function clickSort(section, key) {
+  const cur = state.sort[section];
+  if (cur.key === key) {
+    cur.dir = cur.dir === "desc" ? "asc" : "desc";
+  } else {
+    state.sort[section] = { key, dir: "desc" };
+  }
+  render();
+}
+
+// ===== 렌더링 =====
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function cellDisplay(col, obj) {
+  return col.rate ? fmt3(obj[col.key]) : obj[col.key];
+}
+
+function editorHTML(p) {
+  const fieldInputs = FIELDS.map((f) => {
+    const key = `${p.id}:${f}`;
+    const val = key in state.raw ? state.raw[key] : p[f];
+    return `<label class="field"><span>${FIELD_LABEL[f]}</span>
+      <input type="number" step="1" inputmode="numeric"
+        data-pid="${p.id}" data-field="${f}" data-kind="num" value="${esc(val)}"></label>`;
+  }).join("");
+  const status = p.pa >= PA_THRESHOLD
+    ? `<span class="good">· 규정타석 이상 (PA ${p.pa})</span>`
+    : `<span>· 규정타석 미만 (PA ${p.pa}, ${PA_THRESHOLD - p.pa}타석 더 필요)</span>`;
+  return `
+    <div class="ed-top">
+      <div class="ed-left">
+        <input class="ed-input" style="width:110px;font-weight:600" value="${esc(p.name)}" data-pid="${p.id}" data-field="name" data-kind="text">
+        <span class="note">배번</span>
+        <input class="ed-input mono" style="width:64px" type="number" value="${esc(p.num)}" data-pid="${p.id}" data-field="num" data-kind="num">
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-danger btn-sm" data-del="${p.id}">선수 삭제</button>
+        <button class="btn btn-sm" data-close="1">닫기</button>
+      </div>
+    </div>
+    <div class="fields">${fieldInputs}</div>
+    <div class="ed-foot">OPS ${fmt3(p.OPS)} · wOBA ${fmt3(p.wOBA)} ${status}</div>`;
+}
+
+function sectionHTML({ list, sortKey, sortDir, teamRow, sectionId, badgeText, badgeBg, badgeFg, note }) {
+  const colsCount = COLS.length + 3;
+  const head = COLS.map((c) => {
+    const active = sortKey === c.key;
+    const arrow = active ? (sortDir === "desc" ? " ▼" : " ▲") : "";
+    return `<th class="${active ? "active" : ""}" data-sort="${c.key}" data-sec="${sectionId}">${c.label}${arrow}</th>`;
+  }).join("");
+
+  const body = list.length === 0
+    ? `<tr><td colspan="${colsCount}" class="empty">해당하는 선수가 없습니다.</td></tr>`
+    : list.map((p, idx) => {
+        const isEditing = state.editingId === p.id;
+        const cells = COLS.map((c) => {
+          const v = cellDisplay(c, p);
+          const isOps = c.ops;
+          const style = isOps ? `style="background:${opsColor(p.OPS)}"` : "";
+          return `<td class="${isOps ? "ops" : ""}" ${style}>${v}</td>`;
+        }).join("");
+        const row = `<tr class="player ${isEditing ? "editing" : ""}" data-row="${p.id}">
+            <td class="num-col">${idx + 1}</td>
+            <td class="name">${esc(p.name)} <span class="note">#${esc(p.num)}</span></td>
+            ${cells}
+            <td class="act">${isEditing ? "닫기" : "수정"}</td>
+          </tr>`;
+        const editor = isEditing ? `<tr class="editor"><td colspan="${colsCount}">${editorHTML(p)}</td></tr>` : "";
+        return row + editor;
+      }).join("");
+
+  const subCells = COLS.map((c) => `<td>${cellDisplay(c, teamRow)}</td>`).join("");
+
+  return `
+    <div class="section">
+      <div class="section-head">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="badge" style="background:${badgeBg};color:${badgeFg}">${badgeText}</span>
+          <span class="note">${note}</span>
+        </div>
+        <span class="scroll-hint">↔ 표를 옆으로 밀면 wOBA까지 더 보여요</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="left">#</th><th class="left">이름</th>${head}<th></th>
+          </tr></thead>
+          <tbody>
+            ${body}
+            <tr class="subtotal" style="background:${badgeBg}">
+              <td></td><td class="name">소계 (${list.length}명)</td>${subCells}<td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function render() {
+  const active = document.activeElement;
+  const focusInfo = active && active.dataset && active.dataset.field
+    ? { pid: active.dataset.pid, field: active.dataset.field }
+    : null;
+
+  const rows = state.players.map((p) => ({ ...p, ...calc(p) }));
+  const qualified = rows.filter((r) => r.pa >= PA_THRESHOLD);
+  const unqualified = rows.filter((r) => r.pa < PA_THRESHOLD);
+  const team = teamOf(state.players);
+  const teamA = teamOf(qualified);
+  const teamB = teamOf(unqualified);
+
+  const sortedA = sortRows(qualified, state.sort.A.key, state.sort.A.dir);
+  const sortedB = sortRows(unqualified, state.sort.B.key, state.sort.B.dir);
+
+  const leaderAVG = [...qualified].sort((a, b) => b.AVG - a.AVG)[0];
+  const leaderOPS = [...qualified].sort((a, b) => b.OPS - a.OPS)[0];
+  const leaderHR = [...rows].sort((a, b) => b.hr - a.hr)[0];
+  const leaderSB = [...rows].sort((a, b) => b.sb - a.sb)[0];
+
+  const saveText = state.saveState === "saved" ? "✓ 이 기기에 저장됨" : "";
+
+  document.getElementById("app").innerHTML = `
+    <div class="hero">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:6px">
+        <div>
+          <div class="hero-title">2027 FAKERS</div>
+          <div class="hero-sub">타자 기록 · 세이버매트릭스</div>
+        </div>
+        <div class="save-state">${saveText}</div>
+      </div>
+      <div class="summary">
+        ${[["팀 타율", fmt3(team.AVG)], ["팀 출루율", fmt3(team.OBP)], ["팀 장타율", fmt3(team.SLG)], ["팀 OPS", fmt3(team.OPS)]]
+          .map(([l, v]) => `<div class="sum-card"><div class="sum-label">${l}</div><div class="sum-val">${v}</div></div>`).join("")}
+      </div>
+      <div class="hero-foot">총 ${state.players.length}명 등록 · 규정타석(${PA_THRESHOLD}타석) 이상 ${qualified.length}명 / 미만 ${unqualified.length}명 · 팀 합계 ${team.g}경기 ${team.ab}타수 ${team.h}안타</div>
+    </div>
+
+    <div class="leaders">
+      <div class="leader"><div class="leader-title">타율 1위 (규정)</div><div class="leader-name">${leaderAVG ? esc(leaderAVG.name) : "—"}</div><div class="leader-val">${fmt3(leaderAVG ? leaderAVG.AVG : 0)}</div></div>
+      <div class="leader"><div class="leader-title">OPS 1위 (규정)</div><div class="leader-name">${leaderOPS ? esc(leaderOPS.name) : "—"}</div><div class="leader-val">${fmt3(leaderOPS ? leaderOPS.OPS : 0)}</div></div>
+      <div class="leader"><div class="leader-title">홈런 1위</div><div class="leader-name">${leaderHR && leaderHR.hr ? esc(leaderHR.name) : "—"}</div><div class="leader-val">${leaderHR && leaderHR.hr ? leaderHR.hr + "개" : "-"}</div></div>
+      <div class="leader"><div class="leader-title">도루 1위</div><div class="leader-name">${leaderSB && leaderSB.sb ? esc(leaderSB.name) : "—"}</div><div class="leader-val">${leaderSB && leaderSB.sb ? leaderSB.sb + "개" : "-"}</div></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-help">이름 행을 누르면 기록을 수정할 수 있어요. 숫자만 바꾸면 나머지 지표는 자동 계산됩니다.</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" id="btn-add">+ 선수 추가</button>
+        <button class="btn" id="btn-reset">↺ 초기화</button>
+      </div>
+    </div>
+
+    ${sectionHTML({ list: sortedA, sortKey: state.sort.A.key, sortDir: state.sort.A.dir, teamRow: teamA, sectionId: "A",
+      badgeText: QUAL_LABEL, badgeBg: T.qualBg, badgeFg: "#1E6B3C", note: "타석 수를 채운 선수들의 순위표입니다." })}
+    ${sectionHTML({ list: sortedB, sortKey: state.sort.B.key, sortDir: state.sort.B.dir, teamRow: teamB, sectionId: "B",
+      badgeText: UNQUAL_LABEL, badgeBg: T.unqualBg, badgeFg: "#6B6A63", note: "표본이 적어 지표가 크게 흔들릴 수 있어요. 참고용으로 봐주세요." })}
+
+    <div class="disclaimer">
+      wOBA 가중치는 최근 MLB 표준 선형가중치를 준용한 근사값으로, 리그 득점 환경이 다른 사회인야구에서는
+      절대값보다 팀 내 선수 간 상대 비교용으로 참고하세요. 타석이 ${PA_THRESHOLD}개를 넘어서면 선수가
+      자동으로 "규정타석 이상" 표로 옮겨갑니다.
+    </div>
+    <div class="notice">
+      ⚠ 기록은 이 휴대폰(브라우저)에만 저장됩니다. 다른 기기나 팀원과는 자동으로 공유되지 않아요.
+    </div>
+  `;
+
+  if (focusInfo) {
+    const el = document.querySelector(`[data-pid="${focusInfo.pid}"][data-field="${focusInfo.field}"]`);
+    if (el) el.focus();
+  }
+}
+
+// ===== 이벤트 위임 =====
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  const sortTh = t.closest("th[data-sort]");
+  if (sortTh) return clickSort(sortTh.dataset.sec, sortTh.dataset.sort);
+
+  const delBtn = t.closest("button[data-del]");
+  if (delBtn) return removePlayer(delBtn.dataset.del);
+  if (t.closest("button[data-close]")) { state.editingId = null; state.raw = {}; return render(); }
+
+  if (t.closest("tr.editor")) return;
+
+  const row = t.closest("tr.player");
+  if (row) return toggleEdit(row.dataset.row);
+
+  if (t.closest("#btn-add")) return addPlayer();
+  if (t.closest("#btn-reset")) return resetAll();
+});
+
+document.addEventListener("input", (e) => {
+  const el = e.target;
+  if (!el.dataset || !el.dataset.field) return;
+  const pid = el.dataset.pid, field = el.dataset.field;
+  if (el.dataset.kind === "text") {
+    updatePlayer(pid, field, el.value);
+    return;
+  }
+  const key = `${pid}:${field}`;
+  state.raw[key] = el.value;
+  const num = el.value === "" ? 0 : Number(el.value);
+  updatePlayer(pid, field, isFinite(num) ? num : 0);
+  render();
+});
+
+document.addEventListener("change", (e) => {
+  const el = e.target;
+  if (el.dataset && el.dataset.field && el.dataset.kind === "num") {
+    delete state.raw[`${el.dataset.pid}:${el.dataset.field}`];
+  }
+});
+
+// ===== 시작 =====
+state.players = loadPlayers();
+render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
